@@ -9,4 +9,10 @@
     <PackageReference Include="VkBotFramework" Version="1.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Token">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
