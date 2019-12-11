@@ -4,6 +4,7 @@ using System.Net;
 
 using Newtonsoft.Json;
 using VkBotFramework;
+using System.Text.Json;
 
 namespace VkInformer
 {
@@ -72,6 +73,7 @@ namespace VkInformer
             Console.WriteLine("Закрытие");
             return;
         }
+
         public static String GetTemperature()
         {
             String respons="";
@@ -95,6 +97,7 @@ namespace VkInformer
             String answer=respons.Substring(respons.IndexOf(find1)+find1.Length, respons.IndexOf(",", respons.IndexOf(find1)) - respons.IndexOf(find1)-find1.Length);
             return answer;
         }
+        
         public static void Bot(ref VkBot infoBot,String user,String Msg)
         {
             try
