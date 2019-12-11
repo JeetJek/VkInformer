@@ -1,11 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-using System.Collections.Specialized;
 using Newtonsoft.Json;
 using VkBotFramework;
-using Newtonsoft.Json.Linq;
-using System.Linq;
 
 namespace VkInformer
 {
@@ -17,43 +14,63 @@ namespace VkInformer
             VkBot infoBot;
             String Token = "";
             String Group = "";
+            String User="";
             if(args.Length != 0)
             {
-                if(args[0] == "-t")
+                for(int i=0;i<args.Length;i++)
                 {
-                    Console.WriteLine("-t использовано");
+                    if(args[i] == "-t")
+                    {
+                        try
+                        {
+                            Token = args[i+1];
+                        }
+                        catch
+                        {
+                            Console.WriteLine("Не задан токен!");
+                        }
+                    }
+                if(args[i] == "-g")
+                {
                     try
                     {
-                        Token = args[1];
-                    }
-                    catch
-                    {
-                        Console.WriteLine("Не задан токен!");
-                    }
-                }
-                if(args[2] == "-g")
-                {
-                    Console.WriteLine("-g использовано");
-                    try
-                    {
-                        Group = args[3];
+                        Group = args[i+1];
                     }
                     catch
                     {
                         Console.WriteLine("Не задана группа!");
                     }
                 }
-                if(args[0] == "-h")
+                if(args[i] == "-u")
                 {
-                    Console.WriteLine("-h  -  Вызов справки");
+                    try
+                    {
+                        User = args[i+1];
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Не задан пользователь!");
+                    }
+                }
+                }
+                if(args[0] == "-h" || args[0] =="--help")
+                {
+                    Console.WriteLine("--help | -h  -  Вызов справки");
                     Console.WriteLine("-t  -  Задать токен");
                     Console.WriteLine("-g  -  Задать группу");
+                    Console.WriteLine("-u  -  Задать пользователя");
+                    return;
                 }
             }
-            if (File.Exists("Token"))
+            if(User=="")
+            {
+                Console.WriteLine("Пользователь не задан");
+                return;
+            }
+            if (File.Exists("Token")&&File.Exists("Group"))
             {
                 Console.WriteLine(File.ReadAllText("Token"));
-                infoBot = new VkBot(File.ReadAllText("Token").Replace("\n",""), "https://vk.com/club189537036");
+                infoBot = new VkBot(File.ReadAllText("Token"),File.ReadAllText("Group")); 
             }
             else
             {
@@ -80,38 +97,12 @@ namespace VkInformer
                 return;
             }
             String Msg = "Температура за окном: "+ GetTemperature(Weather) + "°C";
-            //Bot(ref infoBot, "jek_ouwl", Msg);
-            Bot(ref infoBot, "Aleks_Vanyukov", Msg);
+            Bot(ref infoBot, User, Msg);
             infoBot.Dispose();
             Console.WriteLine("Закрытие");
             return;
         }
-
-        public static String GetTemperature()
-        {
-            String respons="";
-            WebRequest request = WebRequest.Create("https://api.openweathermap.org/data/2.5/weather?id=1489425&units=metric&appid=fe9ca06f442d762050d864bb19d574e0");
-            WebResponse response = request.GetResponse();
-            using (Stream stream = response.GetResponseStream())
-            {
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    String line = "";
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        respons += line;
-                        Console.WriteLine(line);
-                    }
-                }
-            }
-            response.Close();
-            Console.WriteLine("Запрос выполнен");
-            String find1 = "\"temp\":";
-            String answer = respons.Substring(respons.IndexOf(find1) + find1.Length, respons.IndexOf(",", respons.IndexOf(find1)) - respons.IndexOf(find1) - find1.Length);
-            return answer;
-        }
-
-        
+       
         public static double GetTemperature(WeatherFull weather)
         {
             return weather.Main.Temperature;
@@ -129,7 +120,6 @@ namespace VkInformer
                     response = streamReader.ReadToEnd();
                 }
             }
-
             return response;
         }
 
