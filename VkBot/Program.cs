@@ -1,10 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Net;
-
+using System.Collections.Specialized;
 using Newtonsoft.Json;
 using VkBotFramework;
-using System.Text.Json;
+using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace VkInformer
 {
@@ -14,35 +15,35 @@ namespace VkInformer
         {
             Console.WriteLine("Запуск");
             VkBot infoBot;
-            String Token="";
-            String Group="";
-            if(args.Length!=0)
+            String Token = "";
+            String Group = "";
+            if(args.Length != 0)
             {
-                if(args[0]== "-t")
+                if(args[0] == "-t")
                 {
                     Console.WriteLine("-t использовано");
                     try
                     {
-                        Token=args[1];
+                        Token = args[1];
                     }
                     catch
                     {
                         Console.WriteLine("Не задан токен!");
                     }
                 }
-                if(args[2]== "-g")
+                if(args[2] == "-g")
                 {
                     Console.WriteLine("-g использовано");
                     try
                     {
-                        Group=args[3];
+                        Group = args[3];
                     }
                     catch
                     {
                         Console.WriteLine("Не задана группа!");
                     }
                 }
-                if(args[0]== "-h")
+                if(args[0] == "-h")
                 {
                     Console.WriteLine("-h  -  Вызов справки");
                     Console.WriteLine("-t  -  Задать токен");
@@ -56,19 +57,31 @@ namespace VkInformer
             }
             else
             {
-                if(Token!="" && Group!="")
+                if((Token != "") && (Group != ""))
                 {
                     infoBot = new VkBot(Token, Group);
                 }
                 else
                 {
-                    Console.WriteLine("Введите токен и группу");
+                    Console.WriteLine("Введите токен и группу:");
                     infoBot = new VkBot(Console.ReadLine(), Console.ReadLine());
                 }
             }
 
-            String Msg="Температура за окном: "+ GetTemperature()+ "°C";
-            Bot(ref infoBot, "jek_ouwl", Msg);
+            // Получение данных
+            WeatherFull Weather;
+            try
+            {
+                Weather = JsonConvert.DeserializeObject<WeatherFull>(GetData());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                return;
+            }
+            String Msg = "Температура за окном: "+ GetTemperature(Weather) + "°C";
+            //Bot(ref infoBot, "jek_ouwl", Msg);
+            Bot(ref infoBot, "Aleks_Vanyukov", Msg);
             infoBot.Dispose();
             Console.WriteLine("Закрытие");
             return;
@@ -83,7 +96,7 @@ namespace VkInformer
             {
                 using (StreamReader reader = new StreamReader(stream))
                 {
-                    string line = "";
+                    String line = "";
                     while ((line = reader.ReadLine()) != null)
                     {
                         respons += line;
@@ -94,11 +107,33 @@ namespace VkInformer
             response.Close();
             Console.WriteLine("Запрос выполнен");
             String find1 = "\"temp\":";
-            String answer=respons.Substring(respons.IndexOf(find1)+find1.Length, respons.IndexOf(",", respons.IndexOf(find1)) - respons.IndexOf(find1)-find1.Length);
+            String answer = respons.Substring(respons.IndexOf(find1) + find1.Length, respons.IndexOf(",", respons.IndexOf(find1)) - respons.IndexOf(find1) - find1.Length);
             return answer;
         }
+
         
-        public static void Bot(ref VkBot infoBot,String user,String Msg)
+        public static double GetTemperature(WeatherFull weather)
+        {
+            return weather.Main.Temperature;
+        }
+
+        public static string GetData()
+        {
+            WebRequest webRequest = WebRequest.Create("https://api.openweathermap.org/data/2.5/weather?id=1489425&units=metric&appid=fe9ca06f442d762050d864bb19d574e0");
+            WebResponse webResponse = webRequest.GetResponse();
+            string response = "";
+            using (Stream stream = webResponse.GetResponseStream())
+            {
+                using (StreamReader streamReader = new StreamReader(stream))
+                {
+                    response = streamReader.ReadToEnd();
+                }
+            }
+
+            return response;
+        }
+
+        public static void Bot(ref VkBot infoBot, String user, String Msg)
         {
             try
             {
